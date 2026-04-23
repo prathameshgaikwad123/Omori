@@ -1,9 +1,26 @@
+/* ===== GOOGLE SANS FONT SETUP ===== */
+@font-face {
+    font-family: 'Google Sans';
+    src: url('./fonts/GoogleSans-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Google Sans';
+    src: url('./fonts/GoogleSans-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* ===== RESET ===== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* ===== BODY ===== */
 body {
     background-color: #FFE4E8;
     font-family: 'Google Sans', sans-serif;
@@ -50,6 +67,7 @@ body {
     to { transform: translateY(-110vh); opacity: 0; }
 }
 
+/* ===== MAIN CONTAINER ===== */
 .container {
     position: relative;
     z-index: 1;
@@ -71,6 +89,7 @@ h1 {
     50% { transform: rotate(1deg); }
 }
 
+/* ===== GIF ===== */
 .gif-container {
     margin: 20px auto;
     display: flex;
@@ -85,6 +104,7 @@ h1 {
     transition: opacity 0.3s ease;
 }
 
+/* ===== BUTTONS ===== */
 .buttons {
     display: flex;
     gap: 20px;
@@ -101,7 +121,7 @@ h1 {
     border-radius: 16px;
     font-size: 1.6rem;
     font-weight: 900;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Google Sans', sans-serif;
     padding: 18px 45px;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
@@ -125,7 +145,7 @@ h1 {
     border-radius: 12px;
     font-size: 1rem;
     font-weight: 700;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Google Sans', sans-serif;
     padding: 12px 28px;
     cursor: pointer;
     transition: background 0.2s, left 0.25s ease, top 0.25s ease;
@@ -136,7 +156,7 @@ h1 {
     background: linear-gradient(135deg, #c0392b, #a93226);
 }
 
-
+/* ===== TEXT ===== */
 #tease-toast {
     margin-top: 14px;
     font-size: 1rem;
@@ -154,7 +174,7 @@ h1 {
     transform: translateY(0);
 }
 
-/* Music toggle button */
+/* ===== MUSIC BUTTON ===== */
 #music-toggle {
     position: fixed;
     bottom: 20px;
@@ -176,7 +196,7 @@ h1 {
     transform: scale(1.1);
 }
 
-/* Yes page specific */
+/* ===== YES PAGE ===== */
 .yes-container h1.yes-title {
     font-size: 2.8rem;
     animation: bounceTitle 0.6s ease infinite alternate;
