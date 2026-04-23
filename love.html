@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Falling Hearts — A Love Letter</title>
+  <meta name="description" content="A romantic falling hearts animation with a hidden love letter reveal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose:      hsl(345, 85%, 55%);
+      --rose-deep: hsl(340, 70%, 38%);
+      --rose-glow: hsl(345, 100%, 75%);
+      --petal:     hsl(350, 90%, 92%);
+      --blush:     hsl(345, 60%, 20%);
+      --dark:      hsl(340, 35%, 8%);
+      --dark-mid:  hsl(340, 30%, 12%);
+      --cream:     hsl(35, 60%, 96%);
+      --ink:       hsl(340, 25%, 18%);
+      --gold:      hsl(42, 90%, 58%);
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--dark);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ─── Canvas ─── */
+    #canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* ─── Radial ambient glow ─── */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 0%,   hsl(345 80% 30% / .35) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 100%,  hsl(280 60% 20% / .3) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 45% at 80% 100%,  hsl(345 80% 20% / .3) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ─── CTA area ─── */
+    #hero {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    #hero.hidden { opacity: 0; pointer-events: none; transform: scale(.92); }
+
+    .hero-title {
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 700;
+      color: var(--petal);
+      text-shadow: 0 0 40px hsl(345 100% 70% / .6), 0 2px 8px hsl(0 0% 0% / .5);
+      letter-spacing: .02em;
+      text-align: center;
+      line-height: 1.15;
+      animation: floatTitle 4s ease-in-out infinite;
+    }
+    @keyframes floatTitle {
+      0%,100% { transform: translateY(0);   }
+      50%      { transform: translateY(-8px);}
+    }
+
+    .hero-sub {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: clamp(.9rem, 2vw, 1.15rem);
+      color: hsl(345 60% 80% / .8);
+      letter-spacing: .05em;
+    }
+
+    #open-btn {
+      position: relative;
+      padding: 1rem 2.8rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-family: 'Lora', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--rose), var(--rose-deep));
+      box-shadow:
+        0 0 0 0 hsl(345 85% 55% / .5),
+        0 8px 30px hsl(345 85% 40% / .45),
+        inset 0 1px 0 hsl(0 0% 100% / .2);
+      transition: transform .2s, box-shadow .2s;
+      animation: pulse 2.4s ease infinite;
+      overflow: hidden;
+    }
+    #open-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, hsl(0 0% 100% / .15), transparent 60%);
+      pointer-events: none;
+    }
+    #open-btn:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 0 0 8px hsl(345 85% 55% / .2), 0 14px 40px hsl(345 85% 40% / .5), inset 0 1px 0 hsl(0 0% 100% / .2); animation: none; }
+    #open-btn:active { transform: scale(.97); }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0   hsl(345 85% 55% / .5), 0 8px 30px hsl(345 85% 40% / .45), inset 0 1px 0 hsl(0 0% 100% / .2); }
+      50%      { box-shadow: 0 0 0 12px hsl(345 85% 55% / 0), 0 8px 30px hsl(345 85% 40% / .45), inset 0 1px 0 hsl(0 0% 100% / .2); }
+    }
+
+    /* ─── Letter modal ─── */
+    #letter-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: hsl(340 40% 5% / 0);
+      pointer-events: none;
+      transition: background .8s ease;
+    }
+    #letter-overlay.open {
+      background: hsl(340 40% 5% / .75);
+      pointer-events: auto;
+    }
+
+    /* envelope wrapper */
+    #envelope-wrap {
+      perspective: 1200px;
+      width: min(700px, 100%);
+    }
+
+    #envelope {
+      position: relative;
+      width: 100%;
+      border-radius: 6px;
+      transform-origin: center bottom;
+      transform: rotateX(90deg) scale(.6);
+      opacity: 0;
+      transition: transform 1s cubic-bezier(.22,1,.36,1), opacity .6s ease;
+    }
+    #letter-overlay.open #envelope {
+      transform: rotateX(0deg) scale(1);
+      opacity: 1;
+      transition-delay: .25s;
+    }
+
+    /* envelope body */
+    .env-body {
+      background: linear-gradient(160deg, hsl(35 80% 95%), hsl(35 60% 90%));
+      border-radius: 6px;
+      box-shadow:
+        0 30px 80px hsl(340 60% 10% / .6),
+        0 0 0 1px hsl(35 50% 80% / .4),
+        inset 0 1px 0 hsl(0 0% 100% / .9);
+      overflow: hidden;
+    }
+
+    /* envelope flap */
+    .env-flap {
+      position: relative;
+      height: 60px;
+      background: linear-gradient(160deg, hsl(345 70% 70%), hsl(345 60% 55%));
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      box-shadow: 0 4px 12px hsl(345 70% 30% / .3);
+      transition: clip-path .5s ease, height .5s ease;
+    }
+    .env-flap.open-flap {
+      clip-path: polygon(0 100%, 100% 100%, 50% 0);
+      animation: flapOpen .7s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    @keyframes flapOpen {
+      0%   { clip-path: polygon(0 0, 100% 0, 50% 100%); }
+      100% { clip-path: polygon(0 100%, 100% 100%, 50% 0); }
+    }
+
+    /* wax seal */
+    .wax-seal {
+      position: absolute;
+      left: 50%;
+      bottom: -18px;
+      transform: translateX(-50%);
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, hsl(345 90% 65%), hsl(345 70% 40%));
+      box-shadow: 0 4px 16px hsl(345 80% 30% / .5), inset 0 -2px 4px hsl(0 0% 0% / .2), inset 0 2px 4px hsl(0 0% 100% / .2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      z-index: 2;
+      transition: transform .4s, opacity .4s;
+    }
+    .wax-seal.broken { transform: translateX(-50%) scale(0) rotate(45deg); opacity: 0; }
+
+    /* letter paper */
+    .letter-paper {
+      padding: 2.5rem 3rem 3rem;
+      background: linear-gradient(180deg, hsl(35 80% 97%), hsl(35 60% 95%));
+      min-height: 300px;
+      position: relative;
+    }
+    .letter-paper::before {
+      content: '';
+      position: absolute;
+      left: 3.5rem; top: 0; bottom: 0;
+      width: 1px;
+      background: hsl(210 60% 80% / .4);
+    }
+
+    /* ruled lines */
+    .ruled-lines {
+      position: absolute;
+      inset: 2.5rem 0 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 35px,
+        hsl(210 50% 80% / .25) 35px,
+        hsl(210 50% 80% / .25) 36px
+      );
+      pointer-events: none;
+    }
+
+    .letter-date {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1rem;
+      color: hsl(345 50% 55%);
+      text-align: right;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .letter-salutation {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--rose-deep);
+      margin-bottom: 1.2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .letter-body {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      line-height: 2.19rem; /* match ruled lines */
+      color: var(--ink);
+      position: relative;
+      z-index: 1;
+    }
+    .letter-body p { margin-bottom: 0; min-height: 2.19rem; }
+
+    .letter-sign {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--rose-deep);
+      margin-top: 1.5rem;
+      text-align: right;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .letter-sign.visible { opacity: 1; transform: translateY(0); }
+
+    /* cursor blink */
+    .cursor {
+      display: inline-block;
+      width: 2px; height: 1.1em;
+      background: var(--rose);
+      vertical-align: text-bottom;
+      margin-left: 1px;
+      animation: blink .75s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* close button */
+    #close-btn {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      width: 36px; height: 36px;
+      border: none; border-radius: 50%;
+      background: hsl(345 60% 30% / .15);
+      color: var(--rose-deep);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, transform .2s;
+      backdrop-filter: blur(4px);
+      z-index: 3;
+    }
+    #close-btn:hover { background: hsl(345 60% 30% / .25); transform: rotate(90deg); }
+
+    /* corner decorations */
+    .corner-deco {
+      position: absolute;
+      font-size: 1.1rem;
+      opacity: .35;
+      user-select: none;
+      pointer-events: none;
+    }
+    .corner-deco.tl { top: .6rem; left: .8rem; }
+    .corner-deco.tr { top: .6rem; right: .8rem; transform: scaleX(-1); }
+    .corner-deco.bl { bottom: .6rem; left: .8rem; transform: scaleY(-1); }
+    .corner-deco.br { bottom: .6rem; right: .8rem; transform: scale(-1,-1); }
+
+    /* floating heart burst */
+    .burst-heart {
+      position: fixed;
+      pointer-events: none;
+      z-index: 30;
+      font-size: 1.4rem;
+      animation: burstFly 1.2s ease-out forwards;
+    }
+    @keyframes burstFly {
+      0%   { opacity: 1; transform: translate(0,0) scale(1);   }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.2); }
+    }
+
+    /* ─── Scroll-down hint ─── */
+    .scroll-hint {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: .85rem;
+      color: hsl(345 60% 80% / .5);
+      letter-spacing: .04em;
+      margin-top: .5rem;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<div class="ambient"></div>
+
+<!-- Hero -->
+<section id="hero">
+  <h1 class="hero-title">For You,<br>Always ♡</h1>
+  <p class="hero-sub">A little something, straight from the heart.</p>
+  <button id="open-btn" aria-label="Open love letter">Open Your Letter 💌</button>
+  <p class="scroll-hint">— click to reveal —</p>
+</section>
+
+<!-- Letter modal -->
+<div id="letter-overlay" role="dialog" aria-modal="true" aria-label="Love letter">
+  <div id="envelope-wrap">
+    <div id="envelope">
+      <div class="env-body">
+        <button id="close-btn" aria-label="Close letter">✕</button>
+        <div class="env-flap" id="env-flap">
+          <div class="wax-seal" id="wax-seal">♡</div>
+        </div>
+        <div class="letter-paper" id="letter-paper">
+          <div class="ruled-lines"></div>
+          <div class="corner-deco tl">✿</div>
+          <div class="corner-deco tr">✿</div>
+          <div class="corner-deco bl">✿</div>
+          <div class="corner-deco br">✿</div>
+          <p class="letter-date" id="letter-date"></p>
+          <p class="letter-salutation">My Dearest,</p>
+          <div class="letter-body" id="letter-body"></div>
+          <p class="letter-sign" id="letter-sign">Forever yours, ♡</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CANVAS — Falling hearts
+═══════════════════════════════════════════════ */
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+
+let W, H, hearts = [], particles = [];
+const HEART_COUNT = 38;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+// Heart path helper (unit size ~1, centred at 0,0)
+function heartPath(ctx, x, y, size) {
+  const s = size * 0.5;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  ctx.moveTo(0, s * 0.4);
+  ctx.bezierCurveTo( s,  -s * 0.2,  s * 1.4, s * 0.6,  0,  s * 1.4);
+  ctx.bezierCurveTo(-s * 1.4, s * 0.6, -s,  -s * 0.2,  0,  s * 0.4);
+  ctx.closePath();
+  ctx.restore();
+}
+
+const PALETTE = [
+  'hsl(345,85%,72%)',
+  'hsl(350,80%,80%)',
+  'hsl(340,70%,60%)',
+  'hsl(355,90%,78%)',
+  'hsl(330,75%,70%)',
+  'hsl(345,60%,88%)',
+  'hsl(320,65%,75%)',
+];
+
+function randHeart() {
+  const size = 14 + Math.random() * 32;
+  return {
+    x:      Math.random() * W,
+    y:      -size - Math.random() * H,
+    size,
+    speed:  0.5 + Math.random() * 1.6,
+    drift:  (Math.random() - .5) * 0.5,
+    rot:    Math.random() * Math.PI * 2,
+    rotV:   (Math.random() - .5) * 0.02,
+    alpha:  0.15 + Math.random() * 0.55,
+    color:  PALETTE[Math.floor(Math.random() * PALETTE.length)],
+    wobble: Math.random() * Math.PI * 2,
+    wobbleV:0.015 + Math.random() * 0.025,
+  };
+}
+
+for (let i = 0; i < HEART_COUNT; i++) {
+  const h = randHeart();
+  h.y = Math.random() * H;   // scatter initially
+  hearts.push(h);
+}
+
+function drawHeart(h) {
+  ctx.save();
+  ctx.globalAlpha = h.alpha;
+  ctx.translate(h.x, h.y);
+  ctx.rotate(h.rot);
+
+  // glow
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, h.size * .9);
+  grad.addColorStop(0, h.color);
+  grad.addColorStop(1, 'transparent');
+  ctx.shadowBlur  = h.size * 1.2;
+  ctx.shadowColor = h.color;
+
+  // draw heart centred at 0,0
+  const s = h.size * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(0, s * 0.4);
+  ctx.bezierCurveTo( s, -s * 0.2,  s * 1.4, s * 0.6,  0,  s * 1.4);
+  ctx.bezierCurveTo(-s * 1.4, s * 0.6, -s,  -s * 0.2,  0,  s * 0.4);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+let lastT = 0;
+function animate(t) {
+  requestAnimationFrame(animate);
+  const dt = Math.min(t - lastT, 50);
+  lastT = t;
+
+  ctx.clearRect(0, 0, W, H);
+
+  hearts.forEach(h => {
+    h.wobble += h.wobbleV;
+    h.x     += h.drift + Math.sin(h.wobble) * 0.4;
+    h.y     += h.speed;
+    h.rot   += h.rotV;
+    if (h.y > H + h.size * 2) {
+      Object.assign(h, randHeart());
+      h.y = -h.size * 2;
+    }
+    drawHeart(h);
+  });
+
+  // sparkle particles
+  particles = particles.filter(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += .05; p.life -= 1;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife) * .9;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+    return p.life > 0;
+  });
+}
+requestAnimationFrame(animate);
+
+/* ═══════════════════════════════════════════════
+   LETTER reveal logic
+═══════════════════════════════════════════════ */
+const hero    = document.getElementById('hero');
+const overlay = document.getElementById('letter-overlay');
+const openBtn = document.getElementById('open-btn');
+const closeBtn= document.getElementById('close-btn');
+const envFlap = document.getElementById('env-flap');
+const waxSeal = document.getElementById('wax-seal');
+const dateEl  = document.getElementById('letter-date');
+const bodyEl  = document.getElementById('letter-body');
+const signEl  = document.getElementById('letter-sign');
+
+const LETTER_TEXT = [
+  "I've been searching for the right words, but some feelings are simply too vast for language to hold.",
+  "You arrived like a quiet miracle — changing the colour of ordinary days into something extraordinary.",
+  "In the laughter we've shared and the silences we've kept, I found a home I never knew I was missing.",
+  "Every heartbeat seems to carry your name, a rhythm I would follow to the edge of the world.",
+  "Know this, always: you are loved — fiercely, tenderly, without condition or end.",
+];
+
+// Set today's date
+const now = new Date();
+dateEl.textContent = now.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+let typewriterTimer = null;
+
+function spawnBurst(x, y) {
+  for (let i = 0; i < 10; i++) {
+    const el = document.createElement('span');
+    el.className = 'burst-heart';
+    el.textContent = '♡';
+    const angle = Math.random() * Math.PI * 2;
+    const dist  = 60 + Math.random() * 80;
+    el.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    el.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    el.style.animationDelay = Math.random() * .15 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1400);
+  }
+}
+
+function openLetter() {
+  hero.classList.add('hidden');
+  overlay.classList.add('open');
+
+  // Break wax seal after envelope appears
+  setTimeout(() => {
+    const seal = waxSeal.getBoundingClientRect();
+    spawnBurst(seal.left + seal.width/2, seal.top + seal.height/2);
+    waxSeal.classList.add('broken');
+    envFlap.classList.add('open-flap');
+  }, 900);
+
+  // Typewriter
+  setTimeout(() => startTypewriter(), 1600);
+}
+
+function closeLetter() {
+  clearTimeout(typewriterTimer);
+  overlay.classList.remove('open');
+  setTimeout(() => {
+    hero.classList.remove('hidden');
+    // reset letter
+    bodyEl.innerHTML = '';
+    signEl.classList.remove('visible');
+    envFlap.classList.remove('open-flap');
+    waxSeal.classList.remove('broken');
+  }, 800);
+}
+
+function startTypewriter() {
+  bodyEl.innerHTML = '';
+  signEl.classList.remove('visible');
+
+  let paraIndex = 0, charIndex = 0;
+  let currentP = null;
+  let cursorEl = null;
+
+  function nextChar() {
+    if (paraIndex >= LETTER_TEXT.length) {
+      if (cursorEl) cursorEl.remove();
+      setTimeout(() => signEl.classList.add('visible'), 400);
+      return;
+    }
+
+    if (charIndex === 0) {
+      currentP = document.createElement('p');
+      bodyEl.appendChild(currentP);
+      cursorEl && cursorEl.remove();
+      cursorEl = document.createElement('span');
+      cursorEl.className = 'cursor';
+      currentP.appendChild(cursorEl);
+    }
+
+    const line = LETTER_TEXT[paraIndex];
+    if (charIndex < line.length) {
+      currentP.insertBefore(document.createTextNode(line[charIndex]), cursorEl);
+      charIndex++;
+      typewriterTimer = setTimeout(nextChar, 28 + Math.random() * 22);
+    } else {
+      charIndex = 0;
+      paraIndex++;
+      if (paraIndex < LETTER_TEXT.length) {
+        const br = document.createElement('br');
+        currentP.insertBefore(br, cursorEl);
+        currentP.insertBefore(document.createTextNode('\u00A0'), cursorEl);
+        charIndex = 0;
+        typewriterTimer = setTimeout(nextChar, 420);
+      } else {
+        if (cursorEl) cursorEl.remove();
+        setTimeout(() => signEl.classList.add('visible'), 400);
+      }
+    }
+  }
+  nextChar();
+}
+
+// Sparkles on canvas tied to mouse/touch
+function addParticles(x, y, n = 8) {
+  for (let i = 0; i < n; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = .5 + Math.random() * 2;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1,
+      r: 1.5 + Math.random() * 2,
+      color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+      life: 40 + Math.random() * 30,
+      maxLife: 70,
+    });
+  }
+}
+canvas.addEventListener('mousemove', e => addParticles(e.clientX, e.clientY, 3));
+canvas.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  addParticles(t.clientX, t.clientY, 3);
+}, { passive: true });
+
+openBtn.addEventListener('click', openLetter);
+closeBtn.addEventListener('click', closeLetter);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeLetter(); });
+
+// Keyboard close
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLetter(); });
+</script>
+</body>
+</html>
